@@ -3,175 +3,317 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sistem Pemesanan Bahan Ajar - Login</title>
-    <!-- Memuat Tailwind CSS untuk styling responsif dan modern -->
+    <title>Sistem Informasi Bahan Ajar UT</title>
+    <!-- Memuat Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        /* Mengatur font secara default menjadi Inter */
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap');
-        body {
-            font-family: 'Inter', sans-serif;
-            background-color: #f3f4f6; /* Latar belakang abu-abu muda */
-        }
-        /* Custom styling untuk efek hover tombol */
-        .btn-primary:hover {
-            opacity: 0.9;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.06);
+        body { font-family: 'Inter', sans-serif; background-color: #f8f9fa; }
+        .nav-item { cursor: pointer; transition: all 0.2s; }
+        .active-nav { background-color: #e0f2f1; color: #0f766e; font-weight: 600; border-right: 4px solid #0d9488; }
+        @media (max-width: 640px) {
+            /* Sembunyikan sidebar di mobile */
+            .sidebar { display: none; }
+            /* Tampilkan bottom navbar di mobile */
+            .main-content { margin-left: 0 !important; padding-bottom: 72px; /* Ruang untuk bottom nav */ }
+            .bottom-nav { display: flex !important; }
         }
     </style>
+    <!-- Icon menggunakan Heroicons/Lucide - asumsi tersedia di lingkungan Canvas -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'ut-teal': '#0d9488',
+                    }
+                }
+            }
+        }
+    </script>
 </head>
-<body class="flex items-center justify-center min-h-screen p-4">
+<body onload="initApp()">
 
-    <!-- Kontainer Kartu Login Utama -->
-    <div class="w-full max-w-md bg-white p-8 rounded-xl shadow-2xl border border-gray-100">
-
-        <!-- Header -->
-        <h1 class="text-3xl font-extrabold text-gray-900 mb-2 text-center">Selamat Datang</h1>
-        <p class="text-sm text-gray-500 mb-8 text-center">Silakan masuk untuk melanjutkan pemesanan</p>
-
-        <!-- Form Login -->
-        <form id="loginForm" onsubmit="handleLogin(event)">
-            
-            <div class="mb-4">
-                <label for="email" class="block text-sm font-medium text-gray-700 mb-1">Email</label>
-                <input type="email" id="email" name="email" placeholder="contoh@email.com" required 
-                       class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 transition duration-150 ease-in-out" />
-            </div>
-
-            <div class="mb-6">
-                <label for="password" class="block text-sm font-medium text-gray-700 mb-1">Password</label>
-                <input type="password" id="password" name="password" placeholder="Masukkan password Anda" required 
-                       class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 transition duration-150 ease-in-out" />
-            </div>
-
-            <!-- Tombol Login -->
-            <button type="submit" 
-                    class="btn-primary w-full bg-blue-600 text-white font-semibold py-2.5 rounded-lg transition duration-300 ease-in-out shadow-lg hover:bg-blue-700">
-                Login
-            </button>
-        </form>
-
-        <!-- Tautan Tambahan -->
-        <div class="flex flex-col sm:flex-row justify-center sm:justify-between items-center mt-6 space-y-2 sm:space-y-0">
-            <a href="#" onclick="showModal('LupaPassword')" class="text-sm text-blue-600 hover:text-blue-700 font-medium transition duration-150 ease-in-out">
-                Lupa password?
-            </a>
-            <span class="text-gray-400 hidden sm:inline-block">|</span>
-            <a href="#" onclick="showModal('DaftarAkun')" class="text-sm text-blue-600 hover:text-blue-700 font-medium transition duration-150 ease-in-out">
-                Daftar Akun Baru
-            </a>
-        </div>
+    <!-- Kontainer Aplikasi Utama -->
+    <div id="app" class="min-h-screen">
+        <!-- Konten akan dimuat di sini oleh JavaScript -->
     </div>
-    
-    <!-- Custom Modal Box untuk Error/Notifikasi -->
-    <div id="customModal" class="fixed inset-0 bg-gray-900 bg-opacity-50 hidden items-center justify-center p-4 z-50 transition-opacity duration-300" onclick="closeModal()">
-        <div class="bg-white p-6 rounded-lg shadow-xl w-full max-w-sm transition-transform duration-300 scale-95" onclick="event.stopPropagation()">
+
+    <!-- Custom Modal Box untuk Notifikasi (menggantikan alert/confirm) -->
+    <div id="customModal" class="fixed inset-0 bg-gray-900 bg-opacity-70 hidden items-center justify-center p-4 z-50 transition-opacity duration-300" onclick="closeModal()">
+        <div class="bg-white p-6 rounded-xl shadow-2xl w-full max-w-sm transition-transform duration-300 scale-95" onclick="event.stopPropagation()">
             <div class="flex items-center justify-between mb-4">
                 <h3 id="modalTitle" class="text-xl font-bold text-gray-800">Notifikasi</h3>
                 <button onclick="closeModal()" class="text-gray-400 hover:text-gray-600 focus:outline-none">
                     <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
                 </button>
             </div>
-            <p id="modalBody" class="text-gray-600 mb-4">Ini adalah isi modal.</p>
+            <p id="modalBody" class="text-gray-600 mb-4">Pesan Anda di sini.</p>
             <div id="modalButtons" class="flex justify-end">
-                <button onclick="closeModal()" class="bg-blue-600 text-white font-medium py-2 px-4 rounded-lg hover:bg-blue-700 transition duration-150 ease-in-out">
-                    Tutup
-                </button>
+                <button onclick="closeModal()" class="bg-ut-teal text-white font-medium py-2 px-4 rounded-lg hover:bg-teal-700 transition duration-150 ease-in-out">Tutup</button>
             </div>
         </div>
     </div>
 
-
     <script>
-        /**
-         * Fungsi untuk menampilkan Custom Modal.
-         * @param {string} type - Jenis modal yang akan ditampilkan ('Error', 'Success', 'LupaPassword', 'DaftarAkun').
-         * @param {string} [message] - Pesan yang akan ditampilkan di modal body (hanya untuk Error/Success).
-         */
-        function showModal(type, message = '') {
-            const modal = document.getElementById('customModal');
-            const modalTitle = document.getElementById('modalTitle');
-            const modalBody = document.getElementById('modalBody');
-            const modalButtons = document.getElementById('modalButtons');
-            
-            // Atur judul dan isi modal berdasarkan jenis
-            switch (type) {
-                case 'Error':
-                    modalTitle.textContent = 'Login Gagal';
-                    modalBody.textContent = message || 'Terjadi kesalahan saat mencoba masuk.';
-                    modalButtons.innerHTML = `<button onclick="closeModal()" class="bg-red-600 text-white font-medium py-2 px-4 rounded-lg hover:bg-red-700 transition duration-150 ease-in-out">OK</button>`;
-                    break;
-                case 'Success':
-                    modalTitle.textContent = 'Login Berhasil';
-                    modalBody.textContent = 'Anda akan diarahkan ke halaman utama. Harap tunggu...';
-                    modalButtons.innerHTML = `<button onclick="closeModal()" class="bg-green-600 text-white font-medium py-2 px-4 rounded-lg hover:bg-green-700 transition duration-150 ease-in-out">Lanjut</button>`;
-                    break;
-                case 'LupaPassword':
-                    modalTitle.textContent = 'Lupa Password';
-                    modalBody.innerHTML = 'Fitur Lupa Password akan tersedia di tahap pengembangan selanjutnya. Mohon hubungi Administrator.';
-                    modalButtons.innerHTML = `<button onclick="closeModal()" class="bg-blue-600 text-white font-medium py-2 px-4 rounded-lg hover:bg-blue-700 transition duration-150 ease-in-out">Tutup</button>`;
-                    break;
-                case 'DaftarAkun':
-                    modalTitle.textContent = 'Daftar Akun';
-                    modalBody.innerHTML = 'Fitur Pendaftaran Akun akan tersedia di tahap pengembangan selanjutnya. Silakan kontak Admin untuk dibuatkan akun.';
-                    modalButtons.innerHTML = `<button onclick="closeModal()" class="bg-blue-600 text-white font-medium py-2 px-4 rounded-lg hover:bg-blue-700 transition duration-150 ease-in-out">Tutup</button>`;
-                    break;
-                default:
-                    modalTitle.textContent = 'Informasi';
-                    modalBody.textContent = message;
-                    modalButtons.innerHTML = `<button onclick="closeModal()" class="bg-gray-600 text-white font-medium py-2 px-4 rounded-lg hover:bg-gray-700 transition duration-150 ease-in-out">Tutup</button>`;
-            }
+        let currentView = 'login';
+        const appContainer = document.getElementById('app');
 
-            // Tampilkan modal
+        // --- Fungsi Utility Modal (Menggantikan alert/confirm) ---
+        function showModal(title, message, buttonText = 'Tutup', buttonColor = 'bg-ut-teal') {
+            const modal = document.getElementById('customModal');
+            document.getElementById('modalTitle').textContent = title;
+            document.getElementById('modalBody').innerHTML = message;
+            document.getElementById('modalButtons').innerHTML = `<button onclick="closeModal()" class="text-white font-medium py-2 px-4 rounded-lg ${buttonColor} hover:opacity-90 transition duration-150 ease-in-out">${buttonText}</button>`;
+            
             modal.classList.remove('hidden');
             modal.classList.add('flex');
-            // Tambahkan fokus ke tombol utama di modal untuk aksesibilitas
-            modalButtons.querySelector('button').focus();
+            modal.querySelector('button').focus();
         }
 
-        /**
-         * Fungsi untuk menyembunyikan Custom Modal.
-         */
         function closeModal() {
             const modal = document.getElementById('customModal');
             modal.classList.add('hidden');
             modal.classList.remove('flex');
         }
+        
+        // --- Template UI Components ---
 
-        /**
-         * Fungsi untuk menangani proses login.
-         * @param {Event} event - Objek event form submission.
-         */
-        function handleLogin(event) {
-            event.preventDefault(); // Mencegah form melakukan submit default
-            
-            const emailInput = document.getElementById('email').value.trim();
-            const passwordInput = document.getElementById('password').value.trim();
-
-            // Logika Mock Validasi
-            const correctEmail = 'mahasiswa@ut.ac.id'; // Contoh email yang benar
-            const correctPassword = '123'; // Contoh password yang benar
-            
-            if (emailInput === '' || passwordInput === '') {
-                 // Sesuai permintaan: tampilkan pop-up jika ada yang salah/kosong
-                showModal('Error', 'Email dan password tidak boleh kosong.');
-                return;
+        /** Menghasilkan ikon SVG untuk navigasi */
+        function getIcon(name, size = 6) {
+            let path = '';
+            // Menggunakan path SVG sederhana dari Lucide/Heroicons
+            switch (name) {
+                case 'home': path = "M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l-2-2m2 2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"; break;
+                case 'search': path = "M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"; break;
+                case 'stock': path = "M3 10h18M3 14h18m-9-4v8m-7 0h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"; break;
+                case 'logout': path = "M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"; break;
+                default: path = "M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"; // info
             }
-
-            if (emailInput === correctEmail && passwordInput === correctPassword) {
-                showModal('Success');
-                // Simulasi navigasi ke halaman berikutnya setelah 1.5 detik
-                setTimeout(() => {
-                    // Dalam implementasi nyata, ganti 'index.html' dengan halaman dashboard/utama
-                    window.location.href = 'index.html'; 
-                }, 1500); 
-            } else {
-                // Sesuai permintaan: tampilkan pop-up jika salah
-                showModal('Error', 'email/password yang anda masukkan salah.');
-            }
+            return `<svg class="w-${size} h-${size}" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="${path}"></path></svg>`;
         }
-    </script>
 
-</body>
-</html>
+        /** Template untuk Sidebar Navigasi (Desktop) */
+        function Sidebar() {
+            const items = [
+                { id: 'dashboard', name: 'Dashboard', icon: 'home' },
+                { id: 'tracking', name: 'Tracking Pesanan', icon: 'search' },
+                { id: 'stock', name: 'Stok Bahan Ajar', icon: 'stock' },
+            ];
+            
+            return `
+                <div class="sidebar fixed top-0 left-0 h-screen w-64 bg-white shadow-xl pt-6 z-10 hidden sm:block">
+                    <div class="px-6 mb-8">
+                        <h2 class="text-2xl font-bold text-ut-teal">SIMBA UT</h2>
+                        <p class="text-xs text-gray-500">Sistem Bahan Ajar</p>
+                    </div>
+                    <nav class="space-y-2">
+                        ${items.map(item => `
+                            <div onclick="navigateTo('${item.id}')" 
+                                 class="nav-item flex items-center p-3 mx-4 rounded-lg text-gray-700 hover:bg-gray-100 ${currentView === item.id ? 'active-nav text-ut-teal' : ''}">
+                                ${getIcon(item.icon, 5)}
+                                <span class="ml-3 font-medium">${item.name}</span>
+                            </div>
+                        `).join('')}
+                    </nav>
+                    <div class="absolute bottom-0 w-full p-4 border-t">
+                         <button onclick="navigateTo('login')" 
+                                 class="w-full flex items-center justify-center p-3 rounded-lg text-red-600 bg-red-100 hover:bg-red-200 transition">
+                            ${getIcon('logout', 5)}
+                            <span class="ml-2 font-medium">Logout</span>
+                        </button>
+                    </div>
+                </div>
+            `;
+        }
+        
+        /** Template untuk Bottom Navigasi (Mobile) */
+        function BottomNav() {
+            const items = [
+                { id: 'dashboard', name: 'Home', icon: 'home' },
+                { id: 'tracking', name: 'Tracking', icon: 'search' },
+                { id: 'stock', name: 'Stok', icon: 'stock' },
+            ];
 
+            return `
+                <div class="bottom-nav fixed bottom-0 left-0 w-full bg-white border-t shadow-2xl p-2 z-20 flex sm:hidden justify-around">
+                    ${items.map(item => `
+                        <button onclick="navigateTo('${item.id}')" class="flex flex-col items-center p-1 text-gray-500 ${currentView === item.id ? 'text-ut-teal' : 'hover:text-gray-700'} transition">
+                            ${getIcon(item.icon, 5)}
+                            <span class="text-xs mt-1 font-medium">${item.name}</span>
+                        </button>
+                    `).join('')}
+                    <button onclick="navigateTo('login')" class="flex flex-col items-center p-1 text-red-500 hover:text-red-700 transition">
+                        ${getIcon('logout', 5)}
+                        <span class="text-xs mt-1 font-medium">Logout</span>
+                    </button>
+                </div>
+            `;
+        }
+
+        /** Template Halaman Login (login.html) */
+        function renderLogin() {
+            return `
+                <div class="flex items-center justify-center min-h-screen p-4">
+                    <div class="w-full max-w-md bg-white p-8 rounded-xl shadow-2xl border border-gray-100">
+                        <h1 class="text-3xl font-extrabold text-gray-900 mb-2 text-center">Selamat Datang</h1>
+                        <p class="text-sm text-gray-500 mb-8 text-center">Silakan masuk untuk melanjutkan</p>
+                        
+                        <form onsubmit="handleLogin(event)">
+                            <div class="mb-4">
+                                <label for="email" class="block text-sm font-medium text-gray-700 mb-1">Email</label>
+                                <input type="email" id="email" value="mahasiswa@ut.ac.id" placeholder="contoh@email.com" required 
+                                       class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-ut-teal focus:border-ut-teal transition" />
+                            </div>
+
+                            <div class="mb-6">
+                                <label for="password" class="block text-sm font-medium text-gray-700 mb-1">Password</label>
+                                <input type="password" id="password" value="123" placeholder="Masukkan password Anda" required 
+                                       class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-ut-teal focus:border-ut-teal transition" />
+                            </div>
+
+                            <button type="submit" 
+                                    class="w-full bg-ut-teal text-white font-semibold py-2.5 rounded-lg transition duration-300 ease-in-out shadow-lg hover:bg-teal-700">
+                                Login
+                            </button>
+                        </form>
+                        
+                        <div class="flex justify-center mt-6">
+                            <a href="#" onclick="showModal('Lupa Password', 'Fitur ini akan tersedia dalam pengembangan selanjutnya.')" class="text-sm text-blue-600 hover:text-blue-700 font-medium">Lupa password?</a>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+        
+        /** Template Halaman Dashboard/Index */
+        function renderDashboard() {
+            return `
+                <h1 class="text-3xl font-bold text-gray-800 mb-6">Dashboard Utama</h1>
+                <p class="text-lg text-gray-600 mb-8">Selamat datang kembali! Ini adalah ringkasan sistem Anda.</p>
+
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <!-- Card 1: Total Pesanan -->
+                    <div class="bg-white p-6 rounded-xl shadow-lg border border-teal-100">
+                        <div class="flex items-center justify-between">
+                            <h3 class="text-sm font-medium text-gray-500 uppercase">Pesanan Aktif</h3>
+                            ${getIcon('search', 6)}
+                        </div>
+                        <p class="text-4xl font-extrabold text-gray-900 mt-2">12</p>
+                        <p class="text-sm text-gray-500 mt-1">Lihat di Tracking Pesanan</p>
+                    </div>
+
+                    <!-- Card 2: Stok Tersedia -->
+                    <div class="bg-white p-6 rounded-xl shadow-lg border border-teal-100">
+                        <div class="flex items-center justify-between">
+                            <h3 class="text-sm font-medium text-gray-500 uppercase">Jenis Bahan Ajar</h3>
+                            ${getIcon('stock', 6)}
+                        </div>
+                        <p class="text-4xl font-extrabold text-gray-900 mt-2">45</p>
+                        <p class="text-sm text-gray-500 mt-1">Stok bahan ajar berbeda</p>
+                    </div>
+
+                    <!-- Card 3: Pesanan Selesai Bulan Ini -->
+                    <div class="bg-white p-6 rounded-xl shadow-lg border border-teal-100">
+                        <div class="flex items-center justify-between">
+                            <h3 class="text-sm font-medium text-gray-500 uppercase">Selesai Bulan Ini</h3>
+                            <svg class="w-6 h-6 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                        </div>
+                        <p class="text-4xl font-extrabold text-gray-900 mt-2">86</p>
+                        <p class="text-sm text-gray-500 mt-1">Pesanan berhasil dikirim</p>
+                    </div>
+                </div>
+
+                <!-- Bagian Informasi Cepat -->
+                <div class="mt-8 bg-white p-6 rounded-xl shadow-lg">
+                    <h2 class="text-xl font-semibold text-gray-800 mb-4 border-b pb-2">Akses Cepat</h2>
+                    <div class="flex flex-wrap gap-4">
+                        <button onclick="showModal('Buat Pesanan Baru', 'Halaman Order akan dibuat di langkah selanjutnya.')" class="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition">Buat Pesanan Baru</button>
+                        <button onclick="navigateTo('tracking')" class="px-4 py-2 bg-yellow-500 text-white rounded-lg hover:bg-yellow-600 transition">Lacak Pesanan</button>
+                        <button onclick="navigateTo('stock')" class="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition">Cek Stok</button>
+                    </div>
+                </div>
+            `;
+        }
+
+        /** Template Halaman Tracking Pesanan (tracking.html) */
+        function renderTracking() {
+            const orders = [
+                { id: 'ORD-001', item: 'Pengantar Akuntansi', status: 'Diproses', date: '25 Okt 2025' },
+                { id: 'ORD-002', item: 'Metode Penelitian', status: 'Dikirim', date: '22 Okt 2025' },
+                { id: 'ORD-003', item: 'Teori Organisasi', status: 'Selesai', date: '15 Okt 2025' },
+                { id: 'ORD-004', item: 'Statistika Pendidikan', status: 'Batal', date: '20 Okt 2025' },
+            ];
+
+            return `
+                <h1 class="text-3xl font-bold text-gray-800 mb-6">Tracking Pesanan</h1>
+                <div class="bg-white p-4 rounded-xl shadow-lg overflow-x-auto">
+                    <table class="min-w-full divide-y divide-gray-200">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ID Pesanan</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Item</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tanggal</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                            </tr>
+                        </thead>
+                        <tbody class="bg-white divide-y divide-gray-200">
+                            ${orders.map(order => {
+                                let statusClass = '';
+                                if (order.status === 'Diproses') statusClass = 'bg-yellow-100 text-yellow-800';
+                                else if (order.status === 'Dikirim') statusClass = 'bg-blue-100 text-blue-800';
+                                else if (order.status === 'Selesai') statusClass = 'bg-green-100 text-green-800';
+                                else if (order.status === 'Batal') statusClass = 'bg-red-100 text-red-800';
+
+                                return `
+                                    <tr onclick="showModal('Detail Pesanan', 'Detail untuk pesanan: <strong>${order.id}</strong> - ${order.item}')" class="hover:bg-gray-50 cursor-pointer transition">
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">${order.id}</td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${order.item}</td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${order.date}</td>
+                                        <td class="px-6 py-4 whitespace-nowrap">
+                                            <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${statusClass}">
+                                                ${order.status}
+                                            </span>
+                                        </td>
+                                    </tr>
+                                `;
+                            }).join('')}
+                        </tbody>
+                    </table>
+                </div>
+            `;
+        }
+
+        /** Template Halaman Stok Bahan Ajar (stock.html) */
+        function renderStock() {
+            const stockItems = [
+                { code: 'MK001', name: 'Matematika Dasar', qty: 150, location: 'Gudang A' },
+                { code: 'MK002', name: 'Bahasa Inggris Lanjut', qty: 75, location: 'Gudang B' },
+                { code: 'MK003', name: 'Fisika Terapan', qty: 20, location: 'Gudang A' },
+                { code: 'MK004', name: 'Pendidikan Kewarganegaraan', qty: 300, location: 'Gudang C' },
+            ];
+            
+            return `
+                <h1 class="text-3xl font-bold text-gray-800 mb-6">Stok Bahan Ajar</h1>
+                <p class="text-lg text-gray-600 mb-4">Daftar stok bahan ajar yang tersedia saat ini.</p>
+                
+                <div class="bg-white p-4 rounded-xl shadow-lg overflow-x-auto">
+                    <table class="min-w-full divide-y divide-gray-200">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Kode</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nama Bahan Ajar</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Lokasi</th>
+                                <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Jumlah Stok</th>
+                            </tr>
+                        </thead>
+                        <tbody class="bg-white divide-y divide-gray-200">
+                            ${stockItems.map(item => {
+                                const lowStock = item.qty < 50;
+                                const rowClass = lowStock ? 'bg-red-50 hover:bg-red-100' : 'hover:bg-gray-50';
+                                return `
+                                    <tr class="${rowClass} cursor-pointer transition" onclick="showModal('Detail Stok', 'Stok untuk ${item.name}: <strong>${item.qty}</strong> unit.')">
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">${item.code}</td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${item.name}</td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${item.location}</td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-right font-bold ${lowStock ? 'text-red-600' : 'text-green-600'}">${item.qty}</
