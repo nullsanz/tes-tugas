@@ -89,6 +89,16 @@
     <script>
         let currentView = 'login';
         const appContainer = document.getElementById('app');
+        
+        // Data Global untuk Keranjang Belanja
+        let cart = [];
+        const availableItems = [
+            { id: 'MK001', name: 'Matematika Dasar', price: 50000, stock: 150 },
+            { id: 'MK002', name: 'Bahasa Inggris Lanjut', price: 45000, stock: 75 },
+            { id: 'MK003', name: 'Fisika Terapan', price: 60000, stock: 20 },
+            { id: 'MK004', name: 'Pendidikan Kewarganegaraan', price: 35000, stock: 300 },
+        ];
+
 
         // --- Fungsi Utility Modal (Menggantikan alert/confirm) ---
         function showModal(title, message, buttonText = 'Tutup', buttonColor = 'bg-ut-teal') {
@@ -118,6 +128,7 @@
                 case 'home': path = "M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l-2-2m2 2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"; break;
                 case 'search': path = "M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"; break;
                 case 'stock': path = "M3 10h18M3 14h18m-9-4v8m-7 0h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"; break;
+                case 'order': path = "M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"; break; // File/document icon
                 case 'logout': path = "M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"; break;
                 case 'back': path = "M10 19l-7-7m0 0l7-7m-7 7h18"; break; // Ikon panah kembali
                 default: path = "M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"; // info
@@ -129,6 +140,7 @@
         function Sidebar() {
             const items = [
                 { id: 'dashboard', name: 'Dashboard', icon: 'home' },
+                { id: 'order', name: 'Buat Pesanan', icon: 'order' }, // Tambah Order
                 { id: 'tracking', name: 'Tracking Pesanan', icon: 'search' },
                 { id: 'stock', name: 'Stok Bahan Ajar', icon: 'stock' },
             ];
@@ -163,6 +175,7 @@
         function BottomNav() {
             const items = [
                 { id: 'dashboard', name: 'Home', icon: 'home' },
+                { id: 'order', name: 'Order', icon: 'order' }, // Tambah Order
                 { id: 'tracking', name: 'Tracking', icon: 'search' },
                 { id: 'stock', name: 'Stok', icon: 'stock' },
             ];
@@ -260,6 +273,115 @@
             `;
         }
 
+        /** Template Halaman Order (order.html) */
+        function renderOrder() {
+            const total = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
+
+            return `
+                <h1 class="text-3xl font-bold text-gray-800 mb-6">Formulir Pemesanan Bahan Ajar</h1>
+                
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 animate-fade-in">
+                    <!-- Kolom Kiri: Form Tambah Item -->
+                    <div class="lg:col-span-1 bg-white p-6 rounded-xl shadow-lg border border-teal-100">
+                        <h2 class="text-xl font-semibold text-gray-800 mb-4 border-b pb-2">Tambah Item ke Keranjang</h2>
+                        <form id="addItemForm" onsubmit="addItemToCart(event)">
+                            <div class="mb-4">
+                                <label for="material" class="block text-sm font-medium text-gray-700 mb-1">Bahan Ajar</label>
+                                <select id="material" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-ut-teal focus:border-ut-teal transition">
+                                    <option value="" disabled selected>Pilih Bahan Ajar</option>
+                                    ${availableItems.map(item => `<option value="${item.id}" data-stock="${item.stock}">${item.name} (Stok: ${item.stock})</option>`).join('')}
+                                </select>
+                            </div>
+                            <div class="mb-6">
+                                <label for="quantity" class="block text-sm font-medium text-gray-700 mb-1">Jumlah (Max 10)</label>
+                                <input type="number" id="quantity" value="1" min="1" max="10" required 
+                                       class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-ut-teal focus:border-ut-teal transition" />
+                                <p id="stockInfo" class="text-xs text-gray-500 mt-1">Stok saat ini: -</p>
+                            </div>
+                            <button type="submit" class="w-full bg-ut-teal text-white font-semibold py-2.5 rounded-lg transition duration-300 ease-in-out shadow-lg hover:bg-teal-700 button-hover">
+                                Tambah ke Keranjang
+                            </button>
+                        </form>
+                    </div>
+
+                    <!-- Kolom Kanan: Keranjang dan Detail -->
+                    <div class="lg:col-span-2 bg-white p-6 rounded-xl shadow-lg border border-teal-100">
+                        <h2 class="text-xl font-semibold text-gray-800 mb-4 border-b pb-2">Keranjang Pesanan</h2>
+                        
+                        <div id="cartTableContainer" class="overflow-x-auto mb-4">
+                            <!-- Tabel Keranjang akan dirender di sini -->
+                            ${renderCartTable()}
+                        </div>
+
+                        <div class="flex justify-between items-center border-t pt-4 mt-4">
+                            <span class="text-lg font-bold text-gray-800">Total Harga:</span>
+                            <span class="text-2xl font-extrabold text-ut-teal">Rp ${total.toLocaleString('id-ID')}</span>
+                        </div>
+                        
+                        <button onclick="handleCheckout()" id="checkoutButton"
+                                class="w-full bg-green-600 text-white font-semibold py-3 rounded-lg mt-6 transition duration-300 ease-in-out shadow-lg hover:bg-green-700 button-hover disabled:bg-gray-400" ${cart.length === 0 ? 'disabled' : ''}>
+                            Konfirmasi Pesanan (${cart.length} Item)
+                        </button>
+                    </div>
+                </div>
+            `;
+        }
+
+        /** Helper function untuk render Cart Table */
+        function renderCartTable() {
+            if (cart.length === 0) {
+                return `<p class="text-gray-500 text-center py-8">Keranjang belanja Anda kosong. Silakan tambah item.</p>`;
+            }
+
+            return `
+                <table class="min-w-full divide-y divide-gray-200">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th class="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Item</th>
+                            <th class="px-3 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Jumlah</th>
+                            <th class="px-3 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Harga Total</th>
+                            <th class="px-3 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Aksi</th>
+                        </tr>
+                    </thead>
+                    <tbody class="bg-white divide-y divide-gray-200">
+                        ${cart.map((item, index) => `
+                            <tr>
+                                <td class="px-3 py-2 whitespace-nowrap text-sm font-medium text-gray-900">${item.name}</td>
+                                <td class="px-3 py-2 whitespace-nowrap text-sm text-center text-gray-500">${item.quantity}</td>
+                                <td class="px-3 py-2 whitespace-nowrap text-sm font-semibold text-right text-gray-700">Rp ${(item.price * item.quantity).toLocaleString('id-ID')}</td>
+                                <td class="px-3 py-2 whitespace-nowrap text-center">
+                                    <button onclick="removeItemFromCart(${index})" class="text-red-500 hover:text-red-700 button-hover p-1 rounded-full">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                                    </button>
+                                </td>
+                            </tr>
+                        `).join('')}
+                    </tbody>
+                </table>
+            `;
+        }
+
+        /** Template Halaman Konfirmasi (confirmation.html) */
+        function renderConfirmation() {
+            // Logika untuk menampilkan konfirmasi akan diimplementasikan setelah Halaman Order selesai
+            return `
+                <h1 class="text-3xl font-bold text-gray-800 mb-6">Konfirmasi Pesanan</h1>
+                <div class="bg-white p-8 rounded-xl shadow-lg text-center animate-fade-in">
+                    <svg class="w-20 h-20 text-green-500 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                    <h2 class="text-2xl font-semibold mb-2 text-gray-800">Pesanan Anda Berhasil Dikonfirmasi!</h2>
+                    <p class="text-gray-600 mb-6">Terima kasih telah memesan bahan ajar. Detail pesanan akan segera diproses.</p>
+                    
+                    <div class="bg-gray-50 p-4 rounded-lg inline-block mb-8">
+                        <p class="text-sm font-medium text-gray-700">ID Pesanan Anda: <strong class="text-ut-teal">ORD-005</strong></p>
+                    </div>
+
+                    <div class="flex flex-col sm:flex-row justify-center gap-4">
+                        <button onclick="navigateTo('tracking')" class="px-6 py-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition button-hover">Lacak Pesanan Saya</button>
+                        <button onclick="navigateTo('dashboard')" class="px-6 py-3 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300 transition button-hover">Kembali ke Dashboard</button>
+                    </div>
+                </div>
+            `;
+        }
         
         /** Template Halaman Dashboard/Index */
         function renderDashboard() {
@@ -303,7 +425,7 @@
                 <div class="mt-8 bg-white p-6 rounded-xl shadow-lg animate-fade-in">
                     <h2 class="text-xl font-semibold text-gray-800 mb-4 border-b pb-2">Akses Cepat</h2>
                     <div class="flex flex-wrap gap-4">
-                        <button onclick="showModal('Buat Pesanan Baru', 'Halaman Order akan dibuat di langkah selanjutnya.')" class="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition button-hover">Buat Pesanan Baru</button>
+                        <button onclick="navigateTo('order')" class="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition button-hover">Buat Pesanan Baru</button>
                         <button onclick="navigateTo('tracking')" class="px-4 py-2 bg-yellow-500 text-white rounded-lg hover:bg-yellow-600 transition button-hover">Lacak Pesanan</button>
                         <button onclick="navigateTo('stock')" class="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition button-hover">Cek Stok</button>
                     </div>
@@ -441,6 +563,70 @@
                 showModal('Reset Gagal', 'Pastikan email memiliki karakter "@" dan password baru tidak kosong.', 'Coba Lagi', 'bg-red-600');
             }
         }
+        
+        // --- Order Logic ---
+
+        function addItemToCart(event) {
+            event.preventDefault();
+            const selectElement = document.getElementById('material');
+            const selectedItemId = selectElement.value;
+            const quantity = parseInt(document.getElementById('quantity').value, 10);
+            
+            if (!selectedItemId) {
+                return showModal('Validasi Gagal', 'Pilih Bahan Ajar terlebih dahulu.', 'OK', 'bg-red-600');
+            }
+
+            const itemDetails = availableItems.find(item => item.id === selectedItemId);
+            
+            if (itemDetails.stock < quantity) {
+                return showModal('Validasi Stok Gagal', `Stok ${itemDetails.name} hanya tersisa ${itemDetails.stock} unit. Jumlah pesanan melebihi stok.`, 'OK', 'bg-red-600');
+            }
+
+            // Cari item yang sama di keranjang
+            const existingCartItem = cart.find(item => item.id === selectedItemId);
+
+            if (existingCartItem) {
+                // Perbarui kuantitas jika item sudah ada
+                const newQuantity = existingCartItem.quantity + quantity;
+                if (itemDetails.stock < newQuantity) {
+                    return showModal('Validasi Stok Gagal', `Total pesanan (termasuk yang sudah di keranjang) untuk ${itemDetails.name} (${newQuantity} unit) melebihi stok (${itemDetails.stock} unit).`, 'OK', 'bg-red-600');
+                }
+                existingCartItem.quantity = newQuantity;
+            } else {
+                // Tambahkan item baru
+                cart.push({
+                    id: selectedItemId,
+                    name: itemDetails.name,
+                    price: itemDetails.price,
+                    quantity: quantity
+                });
+            }
+
+            // Perbarui tampilan Order
+            showModal('Berhasil!', `${quantity} unit ${itemDetails.name} berhasil ditambahkan ke keranjang.`, 'OK', 'bg-green-600');
+            
+            // Render ulang order view untuk update tabel
+            navigateTo('order'); 
+        }
+
+        function removeItemFromCart(index) {
+            cart.splice(index, 1);
+            // Render ulang order view untuk update tabel
+            navigateTo('order');
+        }
+
+        function handleCheckout() {
+            if (cart.length === 0) {
+                return showModal('Checkout Gagal', 'Keranjang Anda kosong. Mohon tambahkan item sebelum melakukan konfirmasi.', 'OK', 'bg-red-600');
+            }
+            // Di sini kita bisa menyimpan data cart ke variabel global/DB sebelum ke konfirmasi
+            // Untuk tugas ini, kita langsung ke halaman konfirmasi
+            navigateTo('confirmation');
+            // Kosongkan keranjang setelah konfirmasi (simulasi)
+            cart = []; 
+        }
+
+        // --- Navigation Logic ---
 
         function navigateTo(view) {
             // Memberikan efek fade-out pada konten saat ini sebelum transisi ke view baru
@@ -472,6 +658,7 @@
                 contentHTML = renderForgotPassword();
                 mainContentClass = "p-0";
             } else {
+                // Halaman dengan Sidebar/BottomNav
                 const headerHTML = `
                     <header class="sm:hidden fixed top-0 left-0 w-full bg-ut-teal text-white p-4 flex justify-between items-center shadow-lg z-10">
                         <h1 class="text-xl font-bold">SIMBA UT</h1>
@@ -485,6 +672,8 @@
                 if (currentView === 'dashboard') viewContent = renderDashboard();
                 else if (currentView === 'tracking') viewContent = renderTracking();
                 else if (currentView === 'stock') viewContent = renderStock();
+                else if (currentView === 'order') viewContent = renderOrder(); // Render Order
+                else if (currentView === 'confirmation') viewContent = renderConfirmation(); // Render Konfirmasi
 
                 contentHTML = `
                     ${headerHTML}
@@ -505,6 +694,16 @@
             } else if (currentView === 'forgotPassword') {
                 const form = document.querySelector('form');
                 if (form) form.onsubmit = handleForgotPassword;
+            } else if (currentView === 'order') {
+                const form = document.getElementById('addItemForm');
+                if (form) form.onsubmit = addItemToCart;
+
+                // Listener untuk menampilkan info stok saat item dipilih
+                document.getElementById('material').addEventListener('change', (e) => {
+                    const selectedOption = e.target.options[e.target.selectedIndex];
+                    const stock = selectedOption.getAttribute('data-stock');
+                    document.getElementById('stockInfo').textContent = `Stok saat ini: ${stock || '-'}`;
+                });
             }
             
             // Animasi Fade In diterapkan pada kontainer yang baru di-render
