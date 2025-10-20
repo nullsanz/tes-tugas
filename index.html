@@ -11,6 +11,37 @@
         body { font-family: 'Inter', sans-serif; background-color: #f8f9fa; }
         .nav-item { cursor: pointer; transition: all 0.2s; }
         .active-nav { background-color: #e0f2f1; color: #0f766e; font-weight: 600; border-right: 4px solid #0d9488; }
+        
+        /* --- CSS Tambahan untuk Animasi Interaksi --- */
+        
+        /* Keyframes untuk Fade In */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .animate-fade-in {
+            animation: fadeIn 0.5s ease-out forwards;
+        }
+
+        /* Transisi untuk Kartu & Tombol */
+        .card-transition {
+            transition: transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out;
+        }
+        .card-transition:hover {
+            transform: translateY(-5px); /* Efek melayang */
+            box-shadow: 0 10px 15px -3px rgba(13, 148, 136, 0.2), 0 4px 6px -4px rgba(13, 148, 136, 0.1); /* Bayangan hijau */
+        }
+
+        /* Efek hover tombol dengan scale */
+        .button-hover {
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .button-hover:hover {
+            transform: scale(1.02);
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        }
+        
+        /* --- Media Queries Responsif --- */
         @media (max-width: 640px) {
             /* Sembunyikan sidebar di mobile */
             .sidebar { display: none; }
@@ -88,6 +119,7 @@
                 case 'search': path = "M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"; break;
                 case 'stock': path = "M3 10h18M3 14h18m-9-4v8m-7 0h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"; break;
                 case 'logout': path = "M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"; break;
+                case 'back': path = "M10 19l-7-7m0 0l7-7m-7 7h18"; break; // Ikon panah kembali
                 default: path = "M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"; // info
             }
             return `<svg class="w-${size} h-${size}" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="${path}"></path></svg>`;
@@ -118,7 +150,7 @@
                     </nav>
                     <div class="absolute bottom-0 w-full p-4 border-t">
                          <button onclick="navigateTo('login')" 
-                                 class="w-full flex items-center justify-center p-3 rounded-lg text-red-600 bg-red-100 hover:bg-red-200 transition">
+                                 class="w-full flex items-center justify-center p-3 rounded-lg text-red-600 bg-red-100 hover:bg-red-200 transition button-hover">
                             ${getIcon('logout', 5)}
                             <span class="ml-2 font-medium">Logout</span>
                         </button>
@@ -138,12 +170,12 @@
             return `
                 <div class="bottom-nav fixed bottom-0 left-0 w-full bg-white border-t shadow-2xl p-2 z-20 flex sm:hidden justify-around">
                     ${items.map(item => `
-                        <button onclick="navigateTo('${item.id}')" class="flex flex-col items-center p-1 text-gray-500 ${currentView === item.id ? 'text-ut-teal' : 'hover:text-gray-700'} transition">
+                        <button onclick="navigateTo('${item.id}')" class="flex flex-col items-center p-1 text-gray-500 ${currentView === item.id ? 'text-ut-teal' : 'hover:text-gray-700'} transition button-hover">
                             ${getIcon(item.icon, 5)}
                             <span class="text-xs mt-1 font-medium">${item.name}</span>
                         </button>
                     `).join('')}
-                    <button onclick="navigateTo('login')" class="flex flex-col items-center p-1 text-red-500 hover:text-red-700 transition">
+                    <button onclick="navigateTo('login')" class="flex flex-col items-center p-1 text-red-500 hover:text-red-700 transition button-hover">
                         ${getIcon('logout', 5)}
                         <span class="text-xs mt-1 font-medium">Logout</span>
                     </button>
@@ -155,7 +187,7 @@
         function renderLogin() {
             return `
                 <div class="flex items-center justify-center min-h-screen p-4">
-                    <div class="w-full max-w-md bg-white p-8 rounded-xl shadow-2xl border border-gray-100">
+                    <div class="w-full max-w-md bg-white p-8 rounded-xl shadow-2xl border border-gray-100 animate-fade-in">
                         <h1 class="text-3xl font-extrabold text-gray-900 mb-2 text-center">Selamat Datang</h1>
                         <p class="text-sm text-gray-500 mb-8 text-center">Silakan masuk untuk melanjutkan</p>
                         
@@ -173,18 +205,61 @@
                             </div>
 
                             <button type="submit" 
-                                    class="w-full bg-ut-teal text-white font-semibold py-2.5 rounded-lg transition duration-300 ease-in-out shadow-lg hover:bg-teal-700">
+                                    class="w-full bg-ut-teal text-white font-semibold py-2.5 rounded-lg transition duration-300 ease-in-out shadow-lg hover:bg-teal-700 button-hover">
                                 Login
                             </button>
                         </form>
                         
                         <div class="flex justify-center mt-6">
-                            <a href="#" onclick="showModal('Lupa Password', 'Fitur ini akan tersedia dalam pengembangan selanjutnya.')" class="text-sm text-blue-600 hover:text-blue-700 font-medium">Lupa password?</a>
+                            <!-- Mengubah tautan Lupa Password untuk navigasi ke halaman baru -->
+                            <a href="#" onclick="navigateTo('forgotPassword')" class="text-sm text-blue-600 hover:text-blue-700 font-medium">Lupa password?</a>
                         </div>
                     </div>
                 </div>
             `;
         }
+        
+        /** Template Halaman Lupa Password (Baru) */
+        function renderForgotPassword() {
+            return `
+                <div class="flex items-center justify-center min-h-screen p-4">
+                    <div class="w-full max-w-md bg-white p-8 rounded-xl shadow-2xl border border-gray-100 animate-fade-in">
+                        <!-- Tombol kembali -->
+                        <button onclick="navigateTo('login')" class="text-gray-500 hover:text-ut-teal mb-6 flex items-center transition button-hover">
+                            ${getIcon('back', 5)}
+                            <span class="ml-1 text-sm font-medium">Kembali ke Login</span>
+                        </button>
+
+                        <h1 class="text-3xl font-extrabold text-gray-900 mb-2 text-center">Reset Password</h1>
+                        
+                        <!-- Pesan Penting dari user -->
+                        <p class="text-sm text-red-700 font-bold mb-6 text-center p-3 bg-red-100 rounded-lg border border-red-300">
+                            Pesan Penting: Isi email dengan kata apapun bebas asal ada "@" dan passwordnya bebas.
+                        </p>
+                        
+                        <form onsubmit="handleForgotPassword(event)">
+                            <div class="mb-4">
+                                <label for="resetEmail" class="block text-sm font-medium text-gray-700 mb-1">Email Anda</label>
+                                <input type="email" id="resetEmail" placeholder="contoh@email.com" required 
+                                       class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-ut-teal focus:border-ut-teal transition" />
+                            </div>
+
+                            <div class="mb-6">
+                                <label for="newPassword" class="block text-sm font-medium text-gray-700 mb-1">Password Baru</label>
+                                <input type="password" id="newPassword" placeholder="Masukkan password baru" required 
+                                       class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-ut-teal focus:border-ut-teal transition" />
+                            </div>
+
+                            <button type="submit" 
+                                    class="w-full bg-yellow-600 text-white font-semibold py-2.5 rounded-lg transition duration-300 ease-in-out shadow-lg hover:bg-yellow-700 button-hover">
+                                Reset Password
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            `;
+        }
+
         
         /** Template Halaman Dashboard/Index */
         function renderDashboard() {
@@ -192,9 +267,9 @@
                 <h1 class="text-3xl font-bold text-gray-800 mb-6">Dashboard Utama</h1>
                 <p class="text-lg text-gray-600 mb-8">Selamat datang kembali! Ini adalah ringkasan sistem Anda.</p>
 
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 animate-fade-in">
                     <!-- Card 1: Total Pesanan -->
-                    <div class="bg-white p-6 rounded-xl shadow-lg border border-teal-100">
+                    <div class="bg-white p-6 rounded-xl shadow-lg border border-teal-100 card-transition">
                         <div class="flex items-center justify-between">
                             <h3 class="text-sm font-medium text-gray-500 uppercase">Pesanan Aktif</h3>
                             ${getIcon('search', 6)}
@@ -204,7 +279,7 @@
                     </div>
 
                     <!-- Card 2: Stok Tersedia -->
-                    <div class="bg-white p-6 rounded-xl shadow-lg border border-teal-100">
+                    <div class="bg-white p-6 rounded-xl shadow-lg border border-teal-100 card-transition">
                         <div class="flex items-center justify-between">
                             <h3 class="text-sm font-medium text-gray-500 uppercase">Jenis Bahan Ajar</h3>
                             ${getIcon('stock', 6)}
@@ -214,7 +289,7 @@
                     </div>
 
                     <!-- Card 3: Pesanan Selesai Bulan Ini -->
-                    <div class="bg-white p-6 rounded-xl shadow-lg border border-teal-100">
+                    <div class="bg-white p-6 rounded-xl shadow-lg border border-teal-100 card-transition">
                         <div class="flex items-center justify-between">
                             <h3 class="text-sm font-medium text-gray-500 uppercase">Selesai Bulan Ini</h3>
                             <svg class="w-6 h-6 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
@@ -225,12 +300,12 @@
                 </div>
 
                 <!-- Bagian Informasi Cepat -->
-                <div class="mt-8 bg-white p-6 rounded-xl shadow-lg">
+                <div class="mt-8 bg-white p-6 rounded-xl shadow-lg animate-fade-in">
                     <h2 class="text-xl font-semibold text-gray-800 mb-4 border-b pb-2">Akses Cepat</h2>
                     <div class="flex flex-wrap gap-4">
-                        <button onclick="showModal('Buat Pesanan Baru', 'Halaman Order akan dibuat di langkah selanjutnya.')" class="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition">Buat Pesanan Baru</button>
-                        <button onclick="navigateTo('tracking')" class="px-4 py-2 bg-yellow-500 text-white rounded-lg hover:bg-yellow-600 transition">Lacak Pesanan</button>
-                        <button onclick="navigateTo('stock')" class="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition">Cek Stok</button>
+                        <button onclick="showModal('Buat Pesanan Baru', 'Halaman Order akan dibuat di langkah selanjutnya.')" class="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition button-hover">Buat Pesanan Baru</button>
+                        <button onclick="navigateTo('tracking')" class="px-4 py-2 bg-yellow-500 text-white rounded-lg hover:bg-yellow-600 transition button-hover">Lacak Pesanan</button>
+                        <button onclick="navigateTo('stock')" class="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition button-hover">Cek Stok</button>
                     </div>
                 </div>
             `;
@@ -247,7 +322,7 @@
 
             return `
                 <h1 class="text-3xl font-bold text-gray-800 mb-6">Tracking Pesanan</h1>
-                <div class="bg-white p-4 rounded-xl shadow-lg overflow-x-auto">
+                <div class="bg-white p-4 rounded-xl shadow-lg overflow-x-auto animate-fade-in">
                     <table class="min-w-full divide-y divide-gray-200">
                         <thead class="bg-gray-50">
                             <tr>
@@ -297,7 +372,7 @@
                 <h1 class="text-3xl font-bold text-gray-800 mb-6">Stok Bahan Ajar</h1>
                 <p class="text-lg text-gray-600 mb-4">Daftar stok bahan ajar yang tersedia saat ini.</p>
                 
-                <div class="bg-white p-4 rounded-xl shadow-lg overflow-x-auto">
+                <div class="bg-white p-4 rounded-xl shadow-lg overflow-x-auto animate-fade-in">
                     <table class="min-w-full divide-y divide-gray-200">
                         <thead class="bg-gray-50">
                             <tr>
@@ -312,8 +387,141 @@
                                 const lowStock = item.qty < 50;
                                 const rowClass = lowStock ? 'bg-red-50 hover:bg-red-100' : 'hover:bg-gray-50';
                                 return `
-                                    <tr class="${rowClass} cursor-pointer transition" onclick="showModal('Detail Stok', 'Stok untuk ${item.name}: <strong>${item.qty}</strong> unit.')">
+                                    <tr class="${rowClass} cursor-pointer transition">
                                         <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">${item.code}</td>
                                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${item.name}</td>
                                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${item.location}</td>
-                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-right font-bold ${lowStock ? 'text-red-600' : 'text-green-600'}">${item.qty}</
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-right font-bold ${lowStock ? 'text-red-600' : 'text-green-600'}">${item.qty}</td>
+                                    </tr>
+                                `;
+                            }).join('')}
+                        </tbody>
+                    </table>
+                    <p class="mt-4 text-sm text-red-500 italic">*Item dengan stok kurang dari 50 unit ditandai merah.</p>
+                </div>
+            `;
+        }
+
+        // --- Controller Logics ---
+
+        function handleLogin(event) {
+            event.preventDefault();
+            const emailInput = document.getElementById('email').value.trim();
+            const passwordInput = document.getElementById('password').value.trim();
+
+            // Login 'Bebas' - hanya pastikan tidak kosong
+            if (emailInput && passwordInput) {
+                showModal('Login Berhasil', 'Selamat! Anda berhasil masuk ke Sistem Informasi Bahan Ajar UT.', 'Lanjut', 'bg-green-600');
+                // Mengatur view ke dashboard setelah login
+                setTimeout(() => {
+                    closeModal();
+                    navigateTo('dashboard');
+                }, 500);
+            } else {
+                showModal('Login Gagal', 'Email dan password tidak boleh kosong.', 'OK', 'bg-red-600');
+            }
+        }
+        
+        function handleForgotPassword(event) {
+            event.preventDefault();
+
+            const resetEmail = document.getElementById('resetEmail').value.trim();
+            const newPassword = document.getElementById('newPassword').value.trim();
+
+            // Logika longgar sesuai permintaan user
+            if (resetEmail.includes('@') && newPassword.length > 0) {
+                showModal('Reset Berhasil', 'Password Anda telah berhasil diatur ulang sesuai instruksi! Silakan login dengan password baru Anda.', 'OK', 'bg-green-600');
+                
+                // Setelah reset, kembali ke halaman login
+                setTimeout(() => {
+                    closeModal();
+                    navigateTo('login');
+                }, 1000);
+            } else {
+                showModal('Reset Gagal', 'Pastikan email memiliki karakter "@" dan password baru tidak kosong.', 'Coba Lagi', 'bg-red-600');
+            }
+        }
+
+        function navigateTo(view) {
+            // Memberikan efek fade-out pada konten saat ini sebelum transisi ke view baru
+            const currentContent = appContainer.querySelector('.main-content > div') || appContainer.querySelector('.w-full.max-w-md');
+            if (currentContent) {
+                currentContent.style.animation = 'none'; // Reset animasi
+                // Memastikan opacity di-set ke 0 setelah transisi cepat (0.1s)
+                currentContent.style.opacity = '0'; 
+                
+                // Tunggu sebentar (untuk simulasi transisi), lalu render view baru
+                setTimeout(() => {
+                    currentView = view;
+                    renderApp();
+                }, 100); 
+            } else {
+                currentView = view;
+                renderApp();
+            }
+        }
+
+        function renderApp() {
+            let contentHTML = '';
+            let mainContentClass = "p-4 sm:p-8 pt-20 sm:pt-8";
+            
+            if (currentView === 'login') {
+                contentHTML = renderLogin();
+                mainContentClass = "p-0";
+            } else if (currentView === 'forgotPassword') {
+                contentHTML = renderForgotPassword();
+                mainContentClass = "p-0";
+            } else {
+                const headerHTML = `
+                    <header class="sm:hidden fixed top-0 left-0 w-full bg-ut-teal text-white p-4 flex justify-between items-center shadow-lg z-10">
+                        <h1 class="text-xl font-bold">SIMBA UT</h1>
+                        <button onclick="navigateTo('login')" class="text-white hover:text-gray-200 transition">
+                            ${getIcon('logout', 6)}
+                        </button>
+                    </header>
+                `;
+                
+                let viewContent = '';
+                if (currentView === 'dashboard') viewContent = renderDashboard();
+                else if (currentView === 'tracking') viewContent = renderTracking();
+                else if (currentView === 'stock') viewContent = renderStock();
+
+                contentHTML = `
+                    ${headerHTML}
+                    ${Sidebar()}
+                    <main class="main-content sm:ml-64 ${mainContentClass}">
+                        <div>${viewContent}</div> 
+                    </main>
+                    ${BottomNav()}
+                `;
+            }
+
+            appContainer.innerHTML = contentHTML;
+            
+            // Re-apply event listeners
+            if (currentView === 'login') {
+                const form = document.querySelector('form');
+                if (form) form.onsubmit = handleLogin;
+            } else if (currentView === 'forgotPassword') {
+                const form = document.querySelector('form');
+                if (form) form.onsubmit = handleForgotPassword;
+            }
+            
+            // Animasi Fade In diterapkan pada kontainer yang baru di-render
+            const newContent = appContainer.querySelector('.animate-fade-in') || 
+                               appContainer.querySelector('.main-content > div');
+
+            if (newContent) {
+                newContent.classList.add('animate-fade-in');
+            }
+        }
+
+        // Fungsi inisialisasi aplikasi saat memuat window
+        function initApp() {
+            renderApp();
+        }
+
+    </script>
+
+</body>
+</html>
